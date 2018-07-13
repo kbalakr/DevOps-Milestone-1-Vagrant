@@ -1,0 +1,98 @@
+---
+- hosts: nodes
+  become: yes
+
+  tasks:
+  
+  - name: Get credentials using vault
+    include_vars:
+      file: secrets.yml
+      name: secrets
+   
+  - name: Update apt
+    apt:
+      update_cache: yes
+      upgrade: dist
+
+  - name: Add source key for nodejs
+    apt_key:
+      url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+      state: present
+    register: first_run
+
+  - name: Add source repo for nodejs with deb
+    apt_repository:
+      repo: "deb https://deb.nodesource.com/node_8.x xenial main"
+      state: present
+      update_cache: yes
+
+  - name: Install dependencies
+    apt:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - python3-pip
+      - mongodb
+      - nodejs
+      - nginx
+
+  - name: install pymongo
+    pip:
+      name: pymongo
+      state: present
+
+  - name: add mongo user credentials
+    mongodb_user:
+      database: admin
+      name: "{{secrets['mongo_user']}}"
+      password: "{{secrets['mongo_password']}}"
+      roles: userAdminAnyDatabase
+      state: present
+
+  - name: Restart mongo db
+    service:
+      name: mongodb
+      state: restarted
+
+  - name: clone the checkbox repo during jenkins provision job
+    git:
+      repo: https://github.com/thegreyd/checkbox.io
+      dest: /home/ubuntu/checkbox
+      force: yes
+
+  - name: configure nginx defaults
+    copy:
+      src: /home/ubuntu/checkbox/local-conf/default
+      dest: /etc/nginx/sites-available/default
+      force: yes
+      remote_src: True 
+
+  - name: nginx configuration copy
+    copy:
+      src: /home/ubuntu/checkbox/local-conf/nginx.conf
+      dest: /etc/nginx/nginx.conf
+      force: yes
+      remote_src: True   
+
+  - name: nginx restart
+    service:
+      name: nginx
+      state: restarted
+
+  - name: npm install
+    npm:
+      path: /home/ubuntu/checkbox/server-side/site/
+      state: present
+
+  - name: start node server
+    environment:
+      MONGO_PORT: 3002
+      MONGO_IP: localhost
+      MONGO_USER: "{{secrets['mongo_user']}}"
+      MONGO_PASSWORD: "{{secrets['mongo_password']}}"
+
+    shell: node server.js
+    async: 2592000
+    poll: 0
+    args:
+      chdir: /home/ubuntu/checkbox/server-side/site/

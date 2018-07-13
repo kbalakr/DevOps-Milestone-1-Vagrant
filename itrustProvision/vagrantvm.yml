@@ -1,0 +1,57 @@
+---
+ - hosts: localhost
+   tasks:
+      
+    - name: Install pip
+      become: yes
+      apt: 
+        name: python-pip
+        state: present
+    
+    - name: create vm directory
+      file: path="/home/kichoo/devops_m1/itrust_vm" state=directory
+      become: yes
+    
+    - name: Check if vagrant box is already present
+      shell: '[ -f /home/kichoo/devops_m1/itrust_vm/Vagrantfile ] && echo "File exist" || echo "File does not exist"'
+      register: file_exist
+    
+    - name: creating new vagrant image
+      shell: chdir=/home/kichoo/devops_m1/itrust_vm vagrant init ubuntu/trusty64
+      when: file_exist.stdout == "File does not exist"
+      become: yes
+    
+    - name: adding the configuration changes  
+      replace:
+        path: /home/kichoo/devops_m1/itrust_vm/Vagrantfile
+        regexp: '# config.vm.network \"private_network\", ip: \"192.168.33.10\"'
+        replace: 'config.vm.network "private_network", ip: "192.168.33.20"'
+      when: file_exist.stdout == "File does not exist"
+      become: yes
+    
+    - name: bringing up the vm
+      shell: chdir=/home/kichoo/devops_m1/itrust_vm vagrant up
+      become: yes
+    
+    - name: create directory for key
+      file: path="/home/kichoo/devops_m1/itrust_vm/keys" state=directory
+      become: yes
+    
+    - name: permissions on pvt key
+      file:
+        path: /home/kichoo/devops_m1/itrust_vm/.vagrant/machines/default/virtualbox/private_key
+        mode: 0777
+      become: yes
+      
+    - name: set ssh key for itrust vm
+      become: true
+      command: "cat /home/kichoo/devops_m1/itrust_vm/.vagrant/machines/default/virtualbox/private_key"
+      register: pub_file  
+      
+    - name: creating key
+      file: path=/home/kichoo/devops_m1/itrust_vm/keys/itrust.key mode=0777 state=touch
+      become: yes
+   
+    - name: creating key
+      local_action: copy content={{ pub_file.stdout }} dest=/home/kichoo/devops_m1/itrust_vm/keys/itrust.key
+      become: yes
