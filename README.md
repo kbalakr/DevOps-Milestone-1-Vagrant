@@ -15,10 +15,6 @@
 
 <b>Youtube Link (Using Vagrant)</b> : https://www.youtube.com/watch?v=PXKcIXspejo&feature=youtu.be
 
-(Using Digital Ocean Droplets)
-<b>Link to checkbox.io</b> : http://198.211.96.26/ <br>
-<b>Link to Jenkins Server</b>: http://165.227.84.97:8080/ <br>
-<b>Link to iTrust </b>: http://198.211.109.140:8080/iTrust <br>
 
 <h3> Jenkins Provisioning and Configuring Issues </h3>
   - <b>Python version issue:</b>The ansible-playbook that we ran required python2 support but our box containning jenkins had default python3 installed.
@@ -77,5 +73,3 @@ The way I structured deployment to the digitalocean was a modular approach. One 
 ```
 local_action= wait_for host={{host_name}} state=restarted
 ```
-# Special Note
-We as a group are very thankful to the Professor Parnin and TA Shaurya Garg for allowing us one extra day to figure out the roadblocks. Last few days were very busy, we toiled day and night to sort out the minor issues. But in the end, the effort put in allowed us to look more into details about the tools that we used. And we are hopeful that this knowledge gained will serve us better in the future milestones. 
