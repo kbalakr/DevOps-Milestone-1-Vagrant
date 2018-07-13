@@ -63,11 +63,6 @@ The VCL comes with a limited fixed size RAM. We used this VM to provision the Je
 # Virtualbox Issues
 Certain versions of the application have a bug due to which the the newly created VM's route is not addded to the kernel routing table. Due to this issue, we often could not establish an SSH connection between the host and the VM.
 
-# DigitalOcean Issues
-The way I structured deployment to the digitalocean was a modular approach. One module being responsible for getting the digital ocean image and other being responsible for installing the stuff into that image. This structure allowed us for bet ter organization of our code. 
-<h3>Issues</h3>
-*<b>SSH Key Verification: </b> Whenever we create a new image using DigitalOcean we can pass a ssh key to the image. This ssh key is stored in the digital ocean account under a certain name. The code that we wrote allowed us to create new images dynamically but we forgot to put unique name to it, each time we create the image. This caused SSH key verification problem, as the newly created image had the previously stored ssh key from the account. <br>
-
 *<b>No route to host:</b> Whenever we tried to ssh into newly created images, we got error to SSH host not found. We fixed the problem by waiting for the image and then SSH it.
 
 ```
